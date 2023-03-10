@@ -4,6 +4,7 @@ const express = require("express");
 require("dotenv").config();
 const sequelize = require("./db/db.config");
 const publicRouter = require("./routes/public_routes");
+const superAdminRouter = require("./routes/super-admin.route");
 
 const app = express();
 
@@ -21,6 +22,7 @@ sequelize
 
 // path middlewares / apis
 app.use("/", publicRouter);
+app.use("/super-admin", superAdminRouter);
 
 //invalid path middleware
 app.use("*", (req, res, next) => {
