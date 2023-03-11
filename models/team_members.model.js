@@ -3,6 +3,10 @@ const sequelize = require("../db/db.config");
 //import dataTypes class from sequelize module
 const { DataTypes } = require("sequelize");
 
+//import models
+const { Employee } = require("../models/employee.model");
+const { Projects } = require("../models/projects.model");
+
 //define model
 exports.TeamMembers = sequelize.define(
   "team_members",
@@ -13,7 +17,7 @@ exports.TeamMembers = sequelize.define(
     },
     start_date: {
       type: DataTypes.DATE,
-      defaultValue: new Date(),
+      allowNull: false,
     },
     end_date: {
       type: DataTypes.DATE,
@@ -33,6 +37,22 @@ exports.TeamMembers = sequelize.define(
     allocation_type: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    resource_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      references: {
+        model: Employee,
+        key: "emp_id",
+      },
+    },
+    project_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      references: {
+        model: Projects,
+        key: "project_id",
+      },
     },
   },
   { freezeTableName: true, timestamps: false }
