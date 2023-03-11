@@ -7,10 +7,6 @@ const { DataTypes } = require("sequelize");
 exports.ProjectUpdates = sequelize.define(
   "project_updates",
   {
-    project_name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     date: {
       type: DataTypes.DATE,
       defaultValue: new Date(),

@@ -51,7 +51,7 @@ router.get(
 
 //get project by project Id
 router.get(
-  "/project-portfolio/detailed-view/project_id/:project_id",
+  "/project-portfolio/detailed-view/project-details/project_id/:project_id",
   verifyGdoHead,
   getProject
 );
@@ -77,8 +77,8 @@ router.get(
   getConcerns
 );
 
-// //add team to project
-// router.post("/project/:project_id/team-composition", verifyGdoHead, addTeam);
+//add team to project
+router.post("/team-composition/project/:project_id", verifyGdoHead, addTeam);
 
 //export router
 module.exports = router;

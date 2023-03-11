@@ -42,7 +42,7 @@ exports.addProject = expressAsyncHandler(async (req, res) => {
   await Projects.create(req.body, { include: TeamMembers });
   res.send({ message: "Project Added Successfully" });
 });
-``;
+
 //update project
 exports.updateProject = expressAsyncHandler(async (req, res) => {
   //check the modifying project is exist under logged in gdo head or not
@@ -93,7 +93,7 @@ exports.getProjects = expressAsyncHandler(async (req, res) => {
 exports.getAllConcerns = expressAsyncHandler(async (req, res) => {
   //get the emp_id of logged in user
   let emp_id = req.user.emp_id;
-  //get the project id , name from project table  and get the related concerns
+  //get the cencers where the project id underuser
   let concerns = await ProjectConcerns.findAll({
     include: {
       model: Projects,
