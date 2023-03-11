@@ -99,8 +99,12 @@ exports.getAllConcerns = expressAsyncHandler(async (req, res) => {
       attributes: ["project_name", "project_id", "gdo_head_id"],
     },
     attributes: {
-      exclude: ["id", "project_id"],
+      exclude: ["project_id"],
     },
+    order: [
+      ["concern_raised_on", "DESC"],
+      ["id", "DESC"],
+    ],
   });
   res.send({ message: "All concerns", payload: concerns });
 });
@@ -240,7 +244,10 @@ exports.getConcerns = expressAsyncHandler(async (req, res) => {
       where: {
         project_id: req.params.project_id,
       },
-      order: [["concern_raised_on", "desc"]],
+      order: [
+        ["concern_raised_on", "desc"],
+        ["id", "DESC"],
+      ],
     });
     // if there are concerns , send all concerns
     if (concerns.length) {

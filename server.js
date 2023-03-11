@@ -6,7 +6,8 @@ const sequelize = require("./db/db.config");
 const publicRouter = require("./routes/public_routes");
 const superAdminRouter = require("./routes/super-admin.route");
 const gdoRouter = require("./routes/gdo.route");
-const projectManagerRoute = require("./routes/project_manager.route");
+const projectManagerRouter = require("./routes/project_manager.route");
+const adminUserRouter = require("./routes/admin_user.route");
 
 const app = express();
 
@@ -26,7 +27,8 @@ sequelize
 app.use("/", publicRouter);
 app.use("/super-admin", superAdminRouter);
 app.use("/gdo", gdoRouter);
-app.use("/project-manager", projectManagerRoute);
+app.use("/project-manager", projectManagerRouter);
+app.use("/admin-user", adminUserRouter);
 
 //invalid path middleware
 app.use("*", (req, res, next) => {

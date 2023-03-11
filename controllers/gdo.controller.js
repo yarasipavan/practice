@@ -37,40 +37,41 @@ TeamMembers.Projects = TeamMembers.belongsTo(Projects, {
 TeamMembers.sync();
 
 //controllers
+
 //add new projects
-exports.addProject = expressAsyncHandler(async (req, res) => {
-  await Projects.create(req.body, { include: TeamMembers });
-  res.send({ message: "Project Added Successfully" });
-});
+// exports.addProject = expressAsyncHandler(async (req, res) => {
+//   await Projects.create(req.body, { include: TeamMembers });
+//   res.send({ message: "Project Added Successfully" });
+// });
 
-//update project
-exports.updateProject = expressAsyncHandler(async (req, res) => {
-  //check the modifying project is exist under logged in gdo head or not
-  let project = await Projects.findAll({
-    where: {
-      project_id: req.body.project_id,
-      gdo_head_id: req.user.emp_id,
-    },
-  });
-  //if exist modify
-  if (project) {
-    let updates = await Projects.update(req.body, {
-      where: { project_id: req.body.project_id },
-    });
+// //update project
+// exports.updateProject = expressAsyncHandler(async (req, res) => {
+//   //check the modifying project is exist under logged in gdo head or not
+//   let project = await Projects.findAll({
+//     where: {
+//       project_id: req.body.project_id,
+//       gdo_head_id: req.user.emp_id,
+//     },
+//   });
+//   //if exist modify
+//   if (project) {
+//     let updates = await Projects.update(req.body, {
+//       where: { project_id: req.body.project_id },
+//     });
 
-    if (updates[0]) {
-      res.send({ message: "Project Details modified successfully" });
-    } else {
-      res.send({ alertMsg: "No modifications Done" });
-    }
-  }
-  // else send not found
-  else {
-    res.status(404).send({
-      alertMsg: `No project found under you with project id ${req.body.project_id} to update`,
-    });
-  }
-});
+//     if (updates[0]) {
+//       res.send({ message: "Project Details modified successfully" });
+//     } else {
+//       res.send({ alertMsg: "No modifications Done" });
+//     }
+//   }
+//   // else send not found
+//   else {
+//     res.status(404).send({
+//       alertMsg: `No project found under you with project id ${req.body.project_id} to update`,
+//     });
+//   }
+// });
 
 //get the projects
 exports.getProjects = expressAsyncHandler(async (req, res) => {
@@ -103,8 +104,12 @@ exports.getAllConcerns = expressAsyncHandler(async (req, res) => {
       attributes: ["project_name", "project_id", "project_manager_id"],
     },
     attributes: {
-      exclude: ["id", "project_id"],
+      exclude: ["project_id"],
     },
+    order: [
+      ["concern_raised_on", "DESC"],
+      ["id", "DESC"],
+    ],
   });
   res.send({ message: "All concerns", payload: concerns });
 });
@@ -261,7 +266,7 @@ exports.getProjectUpdates = expressAsyncHandler(async (req, res) => {
     if (updates.length) {
       res.send({ message: "All updates", payload: updates });
     } else {
-      res.send({ alertMsg: "No update found" });
+      res.send({ alertMsg: "No project updates found" });
     }
   }
   //esle send not found
@@ -279,6 +284,10 @@ exports.getConcerns = expressAsyncHandler(async (req, res) => {
       project_id: req.params.project_id,
       gdo_head_id: req.user.emp_id,
     },
+    order: [
+      ["concern_raised_on", "DESC"],
+      ["id", "DESC"],
+    ],
   });
   // if exist then send the project concerns
   if (projects.length) {
