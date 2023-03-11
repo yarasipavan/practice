@@ -5,6 +5,7 @@ require("dotenv").config();
 const sequelize = require("./db/db.config");
 const publicRouter = require("./routes/public_routes");
 const superAdminRouter = require("./routes/super-admin.route");
+const gdoRouter = require("./routes/gdo.route");
 
 const app = express();
 
@@ -23,6 +24,7 @@ sequelize
 // path middlewares / apis
 app.use("/", publicRouter);
 app.use("/super-admin", superAdminRouter);
+app.use("/gdo", gdoRouter);
 
 //invalid path middleware
 app.use("*", (req, res, next) => {

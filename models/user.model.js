@@ -12,7 +12,7 @@ exports.User = sequelize.define(
       primaryKey: true,
       validate: {
         is: {
-          args: /^[a-z0-9](\.?[a-z0-9]){5,}@westagilelabs\.com$/,
+          args: /^[a-z0-9](\.?[a-z0-9]){3,}@westagilelabs\.com$/,
           msg: "Only westagilelabs demain mail accepts",
         },
       },

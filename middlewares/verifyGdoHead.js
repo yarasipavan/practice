@@ -22,7 +22,8 @@ let verifyToken = (req, res, next) => {
           .status(403)
           .send({ alertMsg: "Session Expired please login again..." });
       } else {
-        if (decoded.user_type == "SUPER-ADMIN" && decoded.status) {
+        if (decoded.user_type == "GDO-HEAD" && decoded.status) {
+          req.user = { emp_id: decoded.emp_id, email: decoded.email };
           next();
         } else {
           res.status(403).send({ alertMsg: "You are not authorized user.." });

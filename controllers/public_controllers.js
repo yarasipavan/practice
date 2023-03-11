@@ -66,7 +66,12 @@ exports.login = expressAsyncHandler(async (req, res) => {
     if (await bcryptjs.compare(password, user.password)) {
       //genarate token
       let token = jwt.sign(
-        { email: email, user_type: user.user_type, status: user.status },
+        {
+          email: email,
+          user_type: user.user_type,
+          status: user.status,
+          emp_id: user.emp_id,
+        },
         process.env.TOKEN_SECRET_KEY,
         { expiresIn: "7d" }
       );
