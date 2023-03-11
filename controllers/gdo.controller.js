@@ -1,9 +1,14 @@
+// import modules
+const expressAsyncHandler = require("express-async-handler");
 //import model
 const { Projects } = require("../models/projects.model");
 const { ResourceRequests } = require("../models/resoure_request.model");
-// import modules
-const expressAsyncHandler = require("express-async-handler");
+const { TeamMembers } = require("../models/team_members.model");
+const { Employee } = require("../models/employee.model");
+
 //assocaitions
+
+//  projects -----> resource requests
 Projects.ResourceRequests = Projects.hasMany(ResourceRequests, {
   foreignKey: { name: "project_id", allowNull: false },
 });
@@ -12,10 +17,27 @@ ResourceRequests.Projects = ResourceRequests.belongsTo(Projects, {
 });
 ResourceRequests.sync();
 
+//employee -- team member
+Employee.TeamMembers = Employee.hasOne(TeamMembers, {
+  foreignKey: { name: "resource_id", allowNull: false },
+});
+TeamMembers.Employee = TeamMembers.belongsTo(Employee, {
+  foreignKey: { name: "resource_id", allowNull: false },
+});
+
+//projetcs ---- >Team members
+Projects.TeamMembers = Projects.hasMany(TeamMembers, {
+  foreignKey: { name: "project_id", allowNull: false },
+});
+TeamMembers.Projects = TeamMembers.belongsTo(Projects, {
+  foreignKey: { name: "project_id", allowNull: false },
+});
+TeamMembers.sync();
+
 //controllers
 //add new projects
 exports.addProject = expressAsyncHandler(async (req, res) => {
-  await Projects.create(req.body);
+  await Projects.create(req.body, { include: TeamMembers });
   res.send({ message: "Project Added Successfully" });
 });
 
@@ -43,7 +65,19 @@ exports.getProjects = expressAsyncHandler(async (req, res) => {
 
 //get project by project Id
 exports.getProject = expressAsyncHandler(async (req, res) => {
-  let project = await Projects.findByPk(req.params.project_id);
+  let project = await Projects.findByPk(req.params.project_id, {
+    include: [
+      {
+        association: Projects.TeamMembers,
+        include: [
+          {
+            association: TeamMembers.Employee,
+            attributes: { exclude: ["emp_id"] },
+          },
+        ],
+      },
+    ],
+  });
   if (project) {
     //check it is under loggedin gdo or other
     if (project.gdo_head_id === req.user.emp_id) {
