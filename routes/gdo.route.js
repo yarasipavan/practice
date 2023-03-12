@@ -35,7 +35,7 @@ router.get("/project-concerns", verifyGdoHead, getAllConcerns);
 
 //raise resource request
 router.post(
-  "/resource-request/project/:project_id",
+  "/resource-request/project_id/:project_id",
   verifyGdoHead,
   raiseResourceRequest
 );
@@ -56,27 +56,31 @@ router.get(
 
 //get team by project id
 router.get(
-  "/project-portfolio/detailed-view/project_id/:project_id/team-composition",
+  "/project-portfolio/detailed-view/team-composition/project_id/:project_id",
   verifyGdoHead,
   getTeam
 );
 
 //get project updates
 router.get(
-  "/project-portfolio/detailed-view/project_id/:project_id/project-updates",
+  "/project-portfolio/detailed-view/project-updates/project_id/:project_id",
   verifyGdoHead,
   getProjectUpdates
 );
 
 //getting project concerns
 router.get(
-  "/project-portfolio/detailed-view/project_id/:project_id/project-concerns",
+  "/project-portfolio/detailed-view/project-concerns/project_id/:project_id",
   verifyGdoHead,
   getConcerns
 );
 
 //add team to project
-router.post("/team-composition/project/:project_id", verifyGdoHead, addTeam);
+router.post(
+  "/project-portfolio/detailed-view/team-composition/project_id/:project_id",
+  verifyGdoHead,
+  addTeam
+);
 
 //export router
 module.exports = router;

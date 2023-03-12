@@ -46,6 +46,15 @@ exports.deleteUser = expressAsyncHandler(async (req, res) => {
 
 //update emp_details
 exports.updateUser = expressAsyncHandler(async (req, res) => {
-  await User.update(req.body, { where: { emp_id: req.body.emp_id } });
-  res.send({ message: "user Details Updated Sucessfully" });
+  // check user is exist or not if exist then update
+  let user = await User.findAll({ where: { emp_id: req.body.emp_id } });
+
+  if (user) {
+    await User.update(req.body, { where: { emp_id: req.body.emp_id } });
+    res.send({ message: "user Details Updated Sucessfully" });
+  } else {
+    res
+      .status(404)
+      .send({ alertMsg: `No user found with employee Id: ${req.body.emp_id}` });
+  }
 });

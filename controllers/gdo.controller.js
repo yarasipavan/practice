@@ -284,10 +284,6 @@ exports.getConcerns = expressAsyncHandler(async (req, res) => {
       project_id: req.params.project_id,
       gdo_head_id: req.user.emp_id,
     },
-    order: [
-      ["concern_raised_on", "DESC"],
-      ["id", "DESC"],
-    ],
   });
   // if exist then send the project concerns
   if (projects.length) {
@@ -295,7 +291,10 @@ exports.getConcerns = expressAsyncHandler(async (req, res) => {
       where: {
         project_id: req.params.project_id,
       },
-      order: [["concern_raised_on", "desc"]],
+      order: [
+        ["concern_raised_on", "DESC"],
+        ["id", "DESC"],
+      ],
     });
     // if there are concerns , send all concerns
     if (concerns.length) {

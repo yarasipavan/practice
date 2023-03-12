@@ -23,7 +23,7 @@ let {
 
 //routes
 
-//get al projects
+//get all projects
 router.get("/project-portfolio", verifyAdminUser, getAllProjects);
 
 //get all concerns
@@ -44,28 +44,28 @@ router.get(
 
 //get project by project id
 router.get(
-  "/project-portfolio/project-details/project_id/:project_id",
+  "/project-portfolio/detailed-view/project-details/project_id/:project_id",
   verifyAdminUser,
   getProject
 );
 
 //get team composition by project id
 router.get(
-  "/project-portfolio/team-composition/project_id/:project_id",
+  "/project-portfolio/detailed-view/team-composition/project_id/:project_id",
   verifyAdminUser,
   getTeam
 );
 
 //get project updates by project id
 router.get(
-  "/project-portfolio/project-updates/project_id/:project_id",
+  "/project-portfolio/detailed-view/project-updates/project_id/:project_id",
   verifyAdminUser,
   getUpdates
 );
 
 //get concerns by project id
 router.get(
-  "/project-portfolio/project-concerns/project_id/:project_id",
+  "/project-portfolio/detailed-view/project-concerns/project_id/:project_id",
   verifyAdminUser,
   getConcerns
 );

@@ -1,11 +1,16 @@
 // import modules
+const { Op } = require("sequelize");
 const expressAsyncHandler = require("express-async-handler");
+const nodemailer = require("nodemailer");
+//config dotenv
+require("dotenv").config();
 
 //import models
 const { Projects } = require("../models/projects.model");
 const { ProjectUpdates } = require("../models/project_updates.model");
 const { TeamMembers } = require("../models/team_members.model");
 const { ProjectConcerns } = require("../models/project_concerns.model");
+const { User } = require("../models/user.model");
 
 //associations
 
@@ -40,6 +45,28 @@ let checkProjectIsUnder = async (project_id, project_manager_id) => {
   else return false;
 };
 
+//get emails to send the mail when new concerns raise email od admin-users and project GDO head
+let getMails = async (project_id) => {
+  //get gdo head id
+  let gdo_obj = await Projects.findByPk(project_id, {
+    attributes: ["gdo_head_id"],
+  });
+  let mails = await User.findAll({
+    where: {
+      [Op.or]: [
+        { emp_id: gdo_obj.gdo_head_id },
+        {
+          [Op.and]: [{ user_type: "ADMIN-USER" }, { status: true }],
+        },
+      ],
+    },
+    attributes: ["email"],
+  });
+  let mailArray = [];
+  mails.forEach((mailObj) => mailArray.push(mailObj.email));
+  return mailArray;
+};
+
 //controllers
 
 //post the project update
@@ -66,6 +93,41 @@ exports.raiseConcern = expressAsyncHandler(async (req, res) => {
   //else raise the concern
   else {
     await ProjectConcerns.create(req.body);
+
+    let concern = req.body;
+    //trigger mail to gdo head and admin users
+    let to_mails = await getMails(req.body.project_id);
+    //trigger mail logic
+    var transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.from_mail,
+        pass: process.env.app_password,
+      },
+    });
+    var mailOptions = {
+      from: "process.env.from_mail",
+      to: to_mails,
+      subject: `New Concern raise `,
+      // text: `${req.body.concern_description}`,
+      html: `<h1>New Concern Raised On Project ${req.body.project_id}</h1><br>
+      <h4>Concern: </h4><h6>${req.body.concern_description}</h6><br>
+      <h4>Raised By: </h4><h6>${req.body.raised_by}</h6><br>
+      <h4>Raised on: </h4><h6>${req.body.concern_raised_on}</h6><br>
+      <h4>Severity: </h4><h6>${req.body.severity}</h6><br>
+      <h4>Is concern raised internally: </h4><h6>${req.body.is_concern_raised_internally}</h6><br>
+      
+      `,
+    };
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+        throw new Error(error);
+      } else {
+        console.log("Email sent: " + info.response);
+      }
+    });
+
     res.status(201).send({ message: "Concern Raised Successfully" });
   }
 });

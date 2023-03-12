@@ -22,6 +22,7 @@ let verifyToken = (req, res, next) => {
           .status(403)
           .send({ alertMsg: "Session Expired please login again..." });
       } else {
+        console.log(decoded.status);
         if (decoded.user_type == "GDO-HEAD" && decoded.status) {
           req.user = { emp_id: decoded.emp_id, email: decoded.email };
           next();
