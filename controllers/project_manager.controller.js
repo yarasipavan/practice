@@ -13,6 +13,8 @@ const { ProjectConcerns } = require("../models/project_concerns.model");
 const { User } = require("../models/user.model");
 
 //functions
+
+//to check the project is under the project manager
 let checkProjectIsUnder = async (project_id, project_manager_id) => {
   let projects = await Projects.findAll({
     where: {

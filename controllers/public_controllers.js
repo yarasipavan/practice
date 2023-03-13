@@ -152,12 +152,15 @@ exports.resetPassword = expressAsyncHandler(async (req, res) => {
   //get the token and new password
   //if token valid update user password
   let { token, password } = req.body;
+  console.log(password);
   jwt.verify(token, process.env.TOKEN_SECRET_KEY, async (err, decoded) => {
     if (err) {
       res.send({ alertMsg: "Invalid link or link expired" });
     } else {
+      //hash the password
+      let hashedpwd = await bcryptjs.hash(password, 5);
       await User.update(
-        { password: password },
+        { password: hashedpwd },
         { where: { email: decoded.email } }
       );
       res.send({ message: "password Updated Successfully" });
