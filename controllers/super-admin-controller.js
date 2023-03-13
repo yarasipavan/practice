@@ -58,3 +58,10 @@ exports.updateUser = expressAsyncHandler(async (req, res) => {
       .send({ alertMsg: `No user found with employee Id: ${req.body.emp_id}` });
   }
 });
+
+exports.getUsers = expressAsyncHandler(async (req, res) => {
+  let users = await User.findAll({
+    attributes: { exclude: ["reset_token", "reset_token_expires"] },
+  });
+  res.send({ message: "All users", payload: users });
+});

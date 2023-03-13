@@ -13,6 +13,7 @@ let {
   getAllProjects,
   getAllConcerns,
   addProject,
+  updateProjectDetails,
   getResourceRequests,
   getProject,
   getDetailedView,
@@ -31,6 +32,9 @@ router.get("/project-concerns", verifyAdminUser, getAllConcerns);
 
 //add new project
 router.post("/new-project", verifyAdminUser, addProject);
+
+//update project details
+router.put("/modify-project/project_id/:project_id", updateProjectDetails);
 
 //get resource requests
 router.get("/resource-requests", verifyAdminUser, getResourceRequests);

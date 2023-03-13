@@ -15,6 +15,8 @@ let {
   detailedView,
   getProjectUpdates,
   getConcerns,
+  updateTeamMemberDetails,
+  deleteTeamMember,
 } = require("../controllers/gdo.controller");
 //body-parser
 router.use(express.json());
@@ -80,6 +82,17 @@ router.post(
   "/project-portfolio/detailed-view/team-composition/project_id/:project_id",
   verifyGdoHead,
   addTeam
+);
+
+router.put(
+  "/project-portfolio/detailed-view/team-composition/project_id/:project_id/emp_id/:resource_id",
+  verifyGdoHead,
+  updateTeamMemberDetails
+);
+router.delete(
+  "/project-portfolio/detailed-view/team-composition/project_id/:project_id/emp_id/:resource_id",
+  verifyGdoHead,
+  deleteTeamMember
 );
 
 //export router

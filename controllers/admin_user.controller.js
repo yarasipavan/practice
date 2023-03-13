@@ -1,6 +1,7 @@
 //import modules
 const expressAsyncHandler = require("express-async-handler");
-
+const { Op } = require("sequelize");
+const sequelize = require("../db/db.config");
 //import models
 const { Projects } = require("../models/projects.model");
 const { ResourceRequests } = require("../models/resoure_request.model");
@@ -8,14 +9,16 @@ const { TeamMembers } = require("../models/team_members.model");
 const { Employee } = require("../models/employee.model");
 const { ProjectConcerns } = require("../models/project_concerns.model");
 const { ProjectUpdates } = require("../models/project_updates.model");
-const { addProject } = require("./gdo.controller");
 
-// function
+// functions
+
+//check whether the project is exist in db with project id
 let isProjectExist = async (project_id) => {
   let project = await Projects.findByPk(project_id);
   if (project) return true;
   else return false;
 };
+
 //controllers
 
 // send all projects
@@ -65,6 +68,22 @@ exports.getAllConcerns = expressAsyncHandler(async (req, res) => {
 exports.addProject = expressAsyncHandler(async (req, res) => {
   await Projects.create(req.body);
   res.send({ message: "Project Added Successfully" });
+});
+
+//update project details
+exports.updateProjectDetails = expressAsyncHandler(async (req, res) => {
+  //check the project is exist or not
+  //if exist update project
+  if (await isProjectExist(req.body.project_id)) {
+    Projects.update(req.body, { where: { project_id: req.body.project_id } });
+    res.send({ message: "Project details updated" });
+  }
+  //if project doest not exist
+  else {
+    res.send({
+      alertMsg: `No project found with project id ${req.body.project_id}`,
+    });
+  }
 });
 
 //get all resource request
@@ -141,7 +160,19 @@ exports.getDetailedView = expressAsyncHandler(async (req, res) => {
 exports.getProject = expressAsyncHandler(async (req, res) => {
   let project = await Projects.findByPk(req.params.project_id);
   if (project) {
-    res.send({ message: "Project", payload: project });
+    //add team size to project object
+
+    //get team size
+    let team = await TeamMembers.findAll({
+      attributes: ["resource_id"],
+      where: {
+        project_id: req.params.project_id,
+      },
+    });
+    project = project.toJSON();
+    project.team_size = team.length;
+
+    res.send({ message: "hi", payload: project });
   } else {
     res.send({
       alertMsg: `No project found with project id ${req.params.project_id}`,
@@ -172,14 +203,17 @@ exports.getTeam = expressAsyncHandler(async (req, res) => {
 exports.getUpdates = expressAsyncHandler(async (req, res) => {
   // project exist the send the project updates
   if (await isProjectExist(req.params.project_id)) {
-    //get the updates
+    //get the last two weeks updates
     let updates = await ProjectUpdates.findAll({
-      where: { project_id: req.params.project_id },
+      where: {
+        project_id: req.params.project_id,
+        date: { [Op.gt]: new Date(Date.now() - 1209600000) },
+      },
       order: [["date", "DESC"]],
     });
     // if updates exist send the updates
     if (updates.length) {
-      res.send({ message: "All updates", payload: updates });
+      res.send({ message: "All last two weeks updates", payload: updates });
     }
     // if updates not exist send no updates
     else {

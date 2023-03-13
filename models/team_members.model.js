@@ -24,6 +24,7 @@ exports.TeamMembers = sequelize.define(
     },
     status: {
       type: DataTypes.STRING,
+      defaultValue: "Active",
       allowNull: false,
     },
     billing_status: {

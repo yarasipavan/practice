@@ -12,27 +12,6 @@ const { TeamMembers } = require("../models/team_members.model");
 const { ProjectConcerns } = require("../models/project_concerns.model");
 const { User } = require("../models/user.model");
 
-//associations
-
-// projects--->project-updates
-Projects.ProjectUpdates = Projects.hasMany(ProjectUpdates, {
-  foreignKey: { name: "project_id", allowNull: false },
-});
-ProjectUpdates.Projects = ProjectUpdates.belongsTo(Projects, {
-  foreignKey: { name: "project_id", allowNull: false },
-});
-ProjectUpdates.sync();
-
-//projects -----> project concerns
-Projects.ProjectConcerns = Projects.hasMany(ProjectConcerns, {
-  foreignKey: { name: "project_id", allowNull: false },
-});
-ProjectConcerns.Projects = ProjectConcerns.belongsTo(Projects, {
-  foreignKey: { name: "project_id", allowNull: false },
-});
-
-ProjectConcerns.sync();
-
 //functions
 let checkProjectIsUnder = async (project_id, project_manager_id) => {
   let projects = await Projects.findAll({
@@ -109,7 +88,7 @@ exports.raiseConcern = expressAsyncHandler(async (req, res) => {
       from: "process.env.from_mail",
       to: to_mails,
       subject: `New Concern raise `,
-      // text: `${req.body.concern_description}`,
+
       html: `<h1>New Concern Raised On Project ${req.body.project_id}</h1><br>
       <h4>Concern: </h4><h6>${req.body.concern_description}</h6><br>
       <h4>Raised By: </h4><h6>${req.body.raised_by}</h6><br>
@@ -227,7 +206,7 @@ exports.getDetailedView = expressAsyncHandler(async (req, res) => {
 
 //get project details under him by project id
 exports.getProject = expressAsyncHandler(async (req, res) => {
-  let project = await Projects.findAll({
+  let project = await Projects.findOne({
     where: {
       project_manager_id: req.user.emp_id,
       project_id: req.params.project_id,
@@ -235,7 +214,17 @@ exports.getProject = expressAsyncHandler(async (req, res) => {
     attributes: { exclude: ["project_manager_id"] },
   });
   // if project details  found  send the details
-  if (project.length) {
+  if (project) {
+    //add team size to project object
+    //get team size
+    let team = await TeamMembers.findAll({
+      attributes: ["resource_id"],
+      where: {
+        project_id: req.params.project_id,
+      },
+    });
+    project = project.toJSON();
+    project.team_size = team.length;
     res.send({ message: "Project Details", payload: project });
   }
   // if project details not found send the same to client
@@ -280,11 +269,14 @@ exports.getUpdates = expressAsyncHandler(async (req, res) => {
   // if exist then send the project updates
   if (await checkProjectIsUnder(req.params.project_id, req.user.emp_id)) {
     let updates = await ProjectUpdates.findAll({
-      where: { project_id: req.params.project_id },
+      where: {
+        project_id: req.params.project_id,
+        date: { [Op.gt]: new Date(Date.now() - 1209600000) },
+      },
       order: [["date", "DESC"]],
     });
     if (updates.length) {
-      res.send({ message: "All updates", payload: updates });
+      res.send({ message: "All last two weeks updates", payload: updates });
     } else {
       res.send({ alertMsg: "No project updates found" });
     }

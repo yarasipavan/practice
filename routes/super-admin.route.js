@@ -12,7 +12,9 @@ let {
   setRoleByempId,
   deleteUser,
   updateUser,
+  getUsers,
 } = require("../controllers/super-admin-controller");
+const { route } = require("./public_routes");
 
 //routes
 
@@ -24,6 +26,7 @@ router.put("/employee/:emp_id", verifySuperAdmin, updateUser);
 
 //delete user
 router.delete("/employee/:emp_id", verifySuperAdmin, deleteUser);
+router.get("/users", getUsers);
 
 //export router
 module.exports = router;

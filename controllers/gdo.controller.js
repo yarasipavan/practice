@@ -1,5 +1,6 @@
 // import modules
 const expressAsyncHandler = require("express-async-handler");
+const { Op } = require("sequelize");
 //import model
 const { Projects } = require("../models/projects.model");
 const { ResourceRequests } = require("../models/resoure_request.model");
@@ -7,34 +8,6 @@ const { TeamMembers } = require("../models/team_members.model");
 const { Employee } = require("../models/employee.model");
 const { ProjectConcerns } = require("../models/project_concerns.model");
 const { ProjectUpdates } = require("../models/project_updates.model");
-
-//assocaitions
-
-//  projects -----> resource requests
-Projects.ResourceRequests = Projects.hasMany(ResourceRequests, {
-  foreignKey: { name: "project_id", allowNull: false },
-});
-ResourceRequests.Projects = ResourceRequests.belongsTo(Projects, {
-  foreignKey: { name: "project_id", allowNull: false },
-});
-ResourceRequests.sync();
-
-//employee -- team member
-Employee.TeamMembers = Employee.hasOne(TeamMembers, {
-  foreignKey: { name: "resource_id", allowNull: false },
-});
-TeamMembers.Employee = TeamMembers.belongsTo(Employee, {
-  foreignKey: { name: "resource_id", allowNull: false },
-});
-
-//projetcs ---- >Team members
-Projects.TeamMembers = Projects.hasMany(TeamMembers, {
-  foreignKey: { name: "project_id" },
-});
-TeamMembers.Projects = TeamMembers.belongsTo(Projects, {
-  foreignKey: { name: "project_id" },
-});
-TeamMembers.sync();
 
 //controllers
 
@@ -138,7 +111,7 @@ exports.raiseResourceRequest = expressAsyncHandler(async (req, res) => {
   }
 });
 
-//project detailed view  by project id
+//detailed view  by project id
 exports.detailedView = expressAsyncHandler(async (req, res) => {
   //first check the requested project is exist under logged in GDO Head
   let projects = await Projects.findAll({
@@ -198,7 +171,7 @@ exports.detailedView = expressAsyncHandler(async (req, res) => {
 //get project by project Id
 exports.getProject = expressAsyncHandler(async (req, res) => {
   //check the whether the requested project is under Loggedin GDO head
-  let projects = await Projects.findAll({
+  let project = await Projects.findOne({
     where: {
       project_id: req.params.project_id,
       gdo_head_id: req.user.emp_id,
@@ -207,8 +180,18 @@ exports.getProject = expressAsyncHandler(async (req, res) => {
   });
 
   //if exist send the project details
-  if (projects.length) {
-    res.send({ message: "Project Details", payload: projects[0] });
+  if (project) {
+    //add team size to project object
+    //get team size
+    let team = await TeamMembers.findAll({
+      attributes: ["resource_id"],
+      where: {
+        project_id: req.params.project_id,
+      },
+    });
+    project = project.toJSON();
+    project.team_size = team.length;
+    res.send({ message: "Project Details", payload: project });
   }
   // else send the same to client
   else {
@@ -233,7 +216,7 @@ exports.getTeam = expressAsyncHandler(async (req, res) => {
     let team = await TeamMembers.findAll({
       where: { project_id: req.params.project_id },
       include: {
-        association: TeamMembers.Employee,
+        association: "employee",
         attributes: { exclude: ["emp_id"] },
       },
       attributes: { exclude: ["project_id"] },
@@ -259,12 +242,16 @@ exports.getProjectUpdates = expressAsyncHandler(async (req, res) => {
   });
   // if exist then send the project updates
   if (projects.length) {
+    //last two weeks projects new Date(Date.now()-)
     let updates = await ProjectUpdates.findAll({
-      where: { project_id: req.params.project_id },
+      where: {
+        project_id: req.params.project_id,
+        date: { [Op.gt]: new Date(Date.now() - 1209600000) },
+      },
       order: [["date", "DESC"]],
     });
     if (updates.length) {
-      res.send({ message: "All updates", payload: updates });
+      res.send({ message: "All last two weeks updates", payload: updates });
     } else {
       res.send({ alertMsg: "No project updates found" });
     }
@@ -332,7 +319,91 @@ exports.addTeam = expressAsyncHandler(async (req, res) => {
   //else send not found project under you
   else {
     res.status(404).send({
-      alertMsg: `No product found under you with orject id ${req.body.project_id} to add the team members`,
+      alertMsg: `No product found under you with project id ${req.body.project_id} to add the team members`,
+    });
+  }
+});
+
+//update team member details
+exports.updateTeamMemberDetails = expressAsyncHandler(async (req, res) => {
+  //check project is uder GDO head
+  //check whether logged in user is GDO Head for team assigning project.. i.e the assigning project is under logged in user
+
+  let project = await Projects.findOne({
+    where: {
+      project_id: req.params.project_id,
+      gdo_head_id: req.user.emp_id,
+    },
+  });
+  //if yes check the team member is in project or not
+  if (project) {
+    let member = await TeamMembers.findOne({
+      where: {
+        project_id: req.body.project_id,
+        resource_id: req.body.resource_id,
+      },
+    });
+
+    // member exist update details
+    if (member) {
+      await TeamMembers.update(req.body, {
+        where: {
+          project_id: req.body.project_id,
+          resource_id: req.body.resource_id,
+        },
+      });
+      res.send({ message: "Team Member details Updated" });
+    } else {
+      res.status(404).send({
+        alertMsg: `No team member found with id ${req.body.resource_id} on project  ${req.body.project_id} to delete the team member `,
+      });
+    }
+  } else {
+    res.status(404).send({
+      alertMsg: `No product found under you with project id ${req.body.project_id} to delete the team member `,
+    });
+  }
+});
+
+exports.deleteTeamMember = expressAsyncHandler(async (req, res) => {
+  //check project is uder GDO head
+  //check whether logged in user is GDO Head for team assigning project.. i.e the assigning project is under logged in user
+
+  let project = await Projects.findOne({
+    where: {
+      project_id: req.params.project_id,
+      gdo_head_id: req.user.emp_id,
+    },
+  });
+  //if yes check the team member is in project or not
+  if (project) {
+    let member = await TeamMembers.findOne({
+      where: {
+        project_id: req.params.project_id,
+        resource_id: req.params.resource_id,
+      },
+    });
+
+    // if member exist set status to Inactive
+    if (member) {
+      await TeamMembers.update(
+        { status: "Inactive" },
+        {
+          where: {
+            project_id: req.params.project_id,
+            resource_id: req.params.resource_id,
+          },
+        }
+      );
+      res.send({ message: "Team Member deleted" });
+    } else {
+      res.status(404).send({
+        alertMsg: `No team member found with id ${req.params.resource_id} on project  ${req.params.project_id} to update the team member details`,
+      });
+    }
+  } else {
+    res.status(404).send({
+      alertMsg: `No product found under you with project id ${req.params.project_id} to update the team member details`,
     });
   }
 });

@@ -39,6 +39,9 @@ exports.User = sequelize.define(
       type: DataTypes.STRING,
       defaultValue: null,
     },
+    reset_token: {
+      type: DataTypes.STRING,
+    },
   },
   { timestamps: false, freezeTableName: true }
 );
